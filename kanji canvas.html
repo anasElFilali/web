@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanji Practice Canvas</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            border: 1px solid #000;
+            background-color: #fff;
+        }
+        button, input {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        #buttonContainer {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        #kanjiCanvasContainer {
+            position: relative;
+        }
+        #kanjiCanvas, #guideCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        #guideCanvas {
+            pointer-events: none;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <input type="text" id="kanjiInput" value="日本">
+    <div id="kanjiCanvasContainer" style="position: relative; width: 600px; height: 600px;">
+        <canvas id="kanjiCanvas" width="600" height="600"></canvas>
+        <canvas id="guideCanvas" width="600" height="600"></canvas>
+    </div>
+    <div id="buttonContainer">
+        <button id="toggleGuideButton" onclick="toggleGuide()">Toggle Guide</button>
+        <button id="cleanButton">Clean</button>
+    </div>
+    <script>
+        const canvas = document.getElementById('kanjiCanvas');
+        const guideCanvas = document.getElementById('guideCanvas');
+        const ctx = canvas.getContext('2d');
+        const guideCtx = guideCanvas.getContext('2d');
+        let painting = false;
+        let guideVisible = true;
+
+        // Set canvas background to white
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        function startPosition(e) {
+            painting = true;
+            draw(e);
+        }
+
+        function endPosition() {
+            painting = false;
+            ctx.beginPath();
+        }
+
+        function draw(e) {
+            if (!painting) return;
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = 'black';
+            
+            ctx.lineTo(e.clientX - (document.body.clientWidth-600)/2, e.clientY - (document.body.clientHeight-600)/2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - (document.body.clientWidth-600)/2, e.clientY - (document.body.clientHeight-600)/2);
+        }
+
+        function cleanCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            strokesDrawn = 0;
+            drawKanjiGuide();
+        }
+
+        function drawKanjiGuide() {
+            const kanji = document.getElementById('kanjiInput').value;
+            guideCtx.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
+            guideCtx.font = '200px Arial';
+            guideCtx.textAlign = 'center';
+            guideCtx.textBaseline = 'middle';
+            guideCtx.fillStyle = 'black';
+            guideCtx.fillText(kanji, guideCanvas.width / 2, guideCanvas.height / 2);
+        }
+
+        function toggleGuide() {
+            guideVisible = !guideVisible;
+            if (guideVisible) {
+                document.getElementById('toggleGuideButton').textContent = 'Hide Guide';
+                drawKanjiGuide();
+            } else {
+                document.getElementById('toggleGuideButton').textContent = 'Show Guide';
+                guideCtx.clearRect(0, 0, guideCanvas.width, guideCanvas.height);
+            }
+        }
+
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', endPosition);
+        canvas.addEventListener('mousemove', draw);
+
+        document.getElementById('cleanButton').addEventListener('click', cleanCanvas);
+        document.getElementById('kanjiInput').addEventListener('input', function() {
+            if (guideVisible) {
+                drawKanjiGuide();
+            }
+        });
+
+        // Draw initial guide kanji
+        drawKanjiGuide();
+    </script>
+</body>
+</html>
